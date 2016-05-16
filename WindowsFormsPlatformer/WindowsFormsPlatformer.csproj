@@ -55,8 +55,10 @@
     <Compile Include="GameObjects\Frame.cs" />
     <Compile Include="GameObjects\Player.cs" />
     <Compile Include="GameObjects\Solid.cs" />
-    <Compile Include="GameObjects\UI.cs" />
-    <Compile Include="GameObjects\UIElement.cs" />
+    <Compile Include="GameObjects\UI\Bar.cs" />
+    <Compile Include="GameObjects\UI\Text.cs" />
+    <Compile Include="GameObjects\UI\UI.cs" />
+    <Compile Include="GameObjects\UI\Element.cs" />
     <Compile Include="GameObjects\World.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>

@@ -6,68 +6,22 @@ namespace WindowsFormsPlatformer.GameObjects
 {
     class Player : GameObject
     {
-        private double m_speed;
-        private double m_jumpSpeed;
-        private int m_power;
-        private bool m_jumped;
-        private Size m_originalSize;
+        public double Speed { get; set; }
+        public double JumpSpeed { get; set; }
+        public int Power { get; internal set; }
+        public int MaxPower { get; set; }
+        public bool Jumped { get; internal set; }
+        public int Health { get; internal set; } = 100;
+        public bool Dead { get; internal set; }
+        public bool Won { get; internal set; }
+        public Size OriginalSize { get; internal set; }
+        public Animation IdleAnimation { get; set; }
+        public Animation MoveAnimation { get; set; }
+        public Animation JumpAnimation { get; set; }
+        public Animation CrouchAnimation { get; set; }
+        public Animation CrouchMoveAnimation { get; set; }
+
         private bool m_crouched;
-        private int m_health = 100;
-        private bool m_dead;
-        private bool m_won;
-        private Animation m_idleAnimation;
-        private Animation m_moveAnimation;
-        private Animation m_jumpAnimation;
-        private Animation m_crouchAnimation;
-        private Animation m_crouchMoveAnimation;
-
-        public double Speed
-        {
-            get { return m_speed; }
-            set { m_speed = value; }
-        }
-
-        public double JumpSpeed
-        {
-            get { return m_jumpSpeed; }
-            set { m_jumpSpeed = value; }
-        }
-
-        public Size OriginalSize
-        {
-            get { return m_originalSize; }
-        }
-
-        public Animation IdleAnimation
-        {
-            get { return m_idleAnimation; }
-            set { m_idleAnimation = value; }
-        }
-
-        public Animation MoveAnimation
-        {
-            get { return m_moveAnimation; }
-            set { m_moveAnimation = value; }
-        }
-
-        public Animation JumpAnimation
-        {
-            get { return m_jumpAnimation; }
-            set { m_jumpAnimation = value; }
-        }
-
-        public Animation CrouchAnimation
-        {
-            get { return m_crouchAnimation; }
-            set { m_crouchAnimation = value; }
-        }
-
-        public Animation CrouchMoveAnimation
-        {
-            get { return m_crouchMoveAnimation; }
-            set { m_crouchMoveAnimation = value; }
-        }
-
         public bool Crouched
         {
             get { return m_crouched; }
@@ -76,30 +30,25 @@ namespace WindowsFormsPlatformer.GameObjects
                 if (value && !m_crouched)
                 {
                     m_crouched = true;
-                    Frame = new Rect(
-                        Frame.Center.X,
-                        Frame.Center.Y + OriginalSize.Height / 4,
-                        Frame.Size.Width,
-                        OriginalSize.Height / 2);
+                    Frame.Center.Y += OriginalSize.Height / 4;
+                    Frame.Size.Height = OriginalSize.Height / 2;
                 }
                 else if (!value && m_crouched)
                 {
                     m_crouched = false;
-                    Frame = new Rect(
-                        Frame.Center.X,
-                        Frame.Center.Y - OriginalSize.Height / 4,
-                        Frame.Size.Width,
-                        OriginalSize.Height);
+                    Frame.Center.Y -= OriginalSize.Height / 4;
+                    Frame.Size.Height = OriginalSize.Height;
                 }
             }
         }
+
 
         public Player(GameContext context, Rect frame) : base(context, frame)
         {
             Physics = new PhysicsState(this);
             Physics.Gravity = true;
             Physics.Still = false;
-            m_originalSize = frame.Size;
+            OriginalSize = frame.Size;
         }
 
         public override void KeyDown(Keys key)
@@ -110,7 +59,7 @@ namespace WindowsFormsPlatformer.GameObjects
                     Physics.Gravity = !Physics.Gravity;
                     if (!Physics.Gravity)
                     {
-                        m_jumped = true;
+                        Jumped = true;
                         Physics.Velocity *= 0;
                     }
                     break;
@@ -120,7 +69,7 @@ namespace WindowsFormsPlatformer.GameObjects
 
         public override void HandleKeyboardState(IList<Keys> keys)
         {
-            if (!m_dead)
+            if (!Dead)
             {
                 bool sitDown = false;
                 bool moveLeft = false;
@@ -128,26 +77,26 @@ namespace WindowsFormsPlatformer.GameObjects
                 Vector moveVector = new Vector();
                 if (keys.Contains(Keys.Left) || keys.Contains(Keys.A))
                 {
-                    moveVector += new Vector(-m_speed, 0);
+                    moveVector += new Vector(-Speed, 0);
                     moveLeft = true;
                 }
                 if (keys.Contains(Keys.Right) || keys.Contains(Keys.D))
                 {
-                    moveVector += new Vector(m_speed, 0);
+                    moveVector += new Vector(Speed, 0);
                     moveRight = true;
                 }
                 if (keys.Contains(Keys.Up) || keys.Contains(Keys.W) || keys.Contains(Keys.Space))
                 {
                     if (!Physics.Gravity)
                     {
-                        moveVector += new Vector(0, -m_speed);
+                        moveVector += new Vector(0, -Speed);
                     }
                     else
                     {
-                        if (!m_jumped)
+                        if (!Jumped)
                         {
-                            Physics.Velocity += new Vector(0, -m_jumpSpeed);
-                            m_jumped = true;
+                            Physics.Velocity += new Vector(0, -JumpSpeed);
+                            Jumped = true;
                         }
                     }
                 }
@@ -155,7 +104,7 @@ namespace WindowsFormsPlatformer.GameObjects
                 {
                     if (!Physics.Gravity)
                     {
-                        moveVector += new Vector(0, m_speed);
+                        moveVector += new Vector(0, Speed);
                     }
                     else
                     {
@@ -164,33 +113,33 @@ namespace WindowsFormsPlatformer.GameObjects
                 }
                 Crouched = sitDown;
 
-                //if (moveLeft && !moveRight)
-                //{
-                //    MoveAnimation.turnLeft(true);
-                //    CrouchAnimation.turnLeft(true);
-                //    CrouchMoveAnimation.turnLeft(true);
-                //}
-                //if (moveRight && !moveLeft)
-                //{
-                //    MoveAnimation.turnLeft(false);
-                //    CrouchAnimation.turnLeft(false);
-                //    CrouchMoveAnimation.turnLeft(false);
-                //}
+                if (moveLeft && !moveRight)
+                {
+                    MoveAnimation.TurnedLeft = true;
+                    CrouchAnimation.TurnedLeft = true;
+                    CrouchMoveAnimation.TurnedLeft = true;
+                }
+                if (moveRight && !moveLeft)
+                {
+                    MoveAnimation.TurnedLeft = false;
+                    CrouchAnimation.TurnedLeft = false;
+                    CrouchMoveAnimation.TurnedLeft = false;
+                }
 
-                if (!moveLeft && !moveRight && !m_jumped && !m_crouched)
+                if (!moveLeft && !moveRight && !Jumped && !Crouched)
                     Animation = IdleAnimation;
-                if (!moveLeft && !moveRight && !m_jumped && m_crouched)
+                if (!moveLeft && !moveRight && !Jumped && Crouched)
                     Animation = CrouchAnimation;
-                if ((moveLeft || moveRight) && !m_jumped && !m_crouched)
+                if ((moveLeft || moveRight) && !Jumped && !Crouched)
                     Animation = MoveAnimation;
-                if ((moveLeft || moveRight) && !m_jumped && m_crouched)
+                if ((moveLeft || moveRight) && !Jumped && Crouched)
                     Animation = CrouchMoveAnimation;
-                if (m_jumped && m_crouched)
+                if (Jumped && Crouched)
                     Animation = CrouchAnimation;
-                if (m_jumped && !m_crouched)
+                if (Jumped && !Crouched)
                     Animation = JumpAnimation;
 
-                Frame = new Rect(Frame.Center + moveVector, Frame.Size);
+                Frame.Center += moveVector;
             }
             base.HandleKeyboardState(keys);
         }
@@ -200,12 +149,12 @@ namespace WindowsFormsPlatformer.GameObjects
             var consumable = collision.Collider as Consumable;
             if (consumable != null)
             {
-                m_power += 1;
-                //Context.UI.PowerBar.Value = m_power;
+                Power += 1;
+                Context.UI.PowerBar.Value = (double)Power/MaxPower*100.0;
                 consumable.Remove();
-                m_speed += 0.01;
-                m_jumpSpeed += 0.01;
-                if (m_power > 99)
+                Speed += 0.01;
+                JumpSpeed += 0.01;
+                if (Power >= MaxPower)
                 {
                     Win();
                 }
@@ -216,7 +165,7 @@ namespace WindowsFormsPlatformer.GameObjects
         {
             if (Physics.Colliders.Count == 0)
             {
-                m_jumped = true;
+                Jumped = true;
             }
         }
 
@@ -224,20 +173,20 @@ namespace WindowsFormsPlatformer.GameObjects
         {
             if (Math.Abs(collision.CollisionVector.X) > Math.Abs(collision.CollisionVector.Y))
             {
-                if (collision.CollisionVector.Y > 0 && m_jumped && Physics.Gravity)
+                if (collision.CollisionVector.Y > 0 && Jumped && Physics.Gravity)
                 {
-                    m_jumped = false;
+                    Jumped = false;
                 }
             }
         }
 
         public void DealDamage(int damage)
         {
-            if (!m_won)
+            if (!Won)
             {
-                m_health -= damage;
-                //Context.UI.HealthBar.Value = m_health;
-                if (m_health < 0)
+                Health -= damage;
+                Context.UI.HealthBar.Value = Health;
+                if (Health < 0)
                 {
                     Die();
                 }
@@ -246,14 +195,14 @@ namespace WindowsFormsPlatformer.GameObjects
 
         public void Die()
         {
-            m_dead = true;
-            //Context.UI.DeathText.Visible = true;
+            Dead = true;
+            Context.UI.DeathText.Visible = true;
         }
 
         public void Win()
         {
-            m_won = true;
-            //Context.UI.WinText.Visible = true;
+            Won = true;
+            Context.UI.WinText.Visible = true;
         }
     }
 }

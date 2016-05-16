@@ -12,6 +12,30 @@ namespace WindowsFormsPlatformer
         public Vector Center;
         public Size Size;
 
+        public double Width
+        {
+            get { return Size.Width; }
+            set { Size.Width = value; }
+        }
+
+        public double Height
+        {
+            get { return Size.Height; }
+            set { Size.Height = value; }
+        }
+
+        public double X
+        {
+            get { return Center.X; }
+            set { Center.X = value; }
+        }
+
+        public double Y
+        {
+            get { return Center.Y; }
+            set { Center.Y = value; }
+        }
+
         public Rect(Vector center, Size size)
         {
             Center = center;

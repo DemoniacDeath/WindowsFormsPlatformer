@@ -7,79 +7,30 @@ namespace WindowsFormsPlatformer
 {
     class GameObject
     {
-        private GameContext m_context;
-        private Rect m_frame;
-        private IList<GameObject> m_children = new List<GameObject>();
-        private GameObject m_parent;
-        private RenderObject m_renderObject;
-        private PhysicsState m_physics;
-        private Animation m_animation;
+        public GameContext Context { get; internal set; }
+        public List<GameObject> Children { get; internal set; } = new List<GameObject>();
+        public GameObject Parent { get; set; }
+        public RenderObject RenderObject { get; set; }
+        public PhysicsState Physics { get; set; }
+        public Animation Animation { get; set; }
+        public Rect Frame;
+        public bool Visible { get; set; } = true;
         private bool m_removed = false;
-        private bool m_visible = true;
-
-        public GameObject(GameContext context)
-        {
-            m_context = context;
-        }
-
-        public GameObject(GameContext context, Rect frame) : this(context)
-        {
-            m_frame = frame;
-        }
-
-        protected GameContext Context
-        {
-            get { return m_context; }
-        }
-
-        public Rect Frame
-        {
-            get { return m_frame; }
-            set { m_frame = value; }
-        }
-
-        public IList<GameObject> Children
-        {
-            get { return m_children; }
-        }
-
-        public GameObject Parent
-        {
-            get { return m_parent; }
-            set { m_parent = value; }
-        }
-
-        public RenderObject RenderObject
-        {
-            get { return m_renderObject; }
-            set { m_renderObject = value; }
-        }
-
-        public PhysicsState Physics
-        {
-            get { return m_physics; }
-            set { m_physics = value; }
-        }
-
-        public Animation Animation
-        {
-            get { return m_animation; }
-            set { m_animation = value; }
-        }
-
-        public bool IsRemoved
-        {
-            get { return m_removed; }
-        }
+        public bool IsRemoved { get { return m_removed; } }
 
         public void Remove()
         {
             m_removed = true;
         }
 
-        public bool IsVisible
+        public GameObject(GameContext context)
         {
-            get { return m_visible; }
+            Context = context;
+        }
+
+        public GameObject(GameContext context, Rect frame) : this(context)
+        {
+            Frame = frame;
         }
 
         public virtual void KeyDown(Keys key)
@@ -133,14 +84,18 @@ namespace WindowsFormsPlatformer
 
         public virtual void HandleCollision(Collision collision) { }
 
-        public void Animate()
+        public void Animate(long ticks)
         {
+            if (Animation != null)
+                RenderObject = Animation.Animate(ticks);
 
+            foreach (var child in Children)
+                child.Animate(ticks);
         }
 
         public virtual void Render(Graphics renderer, Vector localBasis, Vector cameraPosition, Size cameraSize)
         {
-            if (IsVisible && RenderObject != null)
+            if (Visible && RenderObject != null)
             {
                 Vector globalPosition = Frame.Center;
                 globalPosition += localBasis;
@@ -160,22 +115,21 @@ namespace WindowsFormsPlatformer
 
         public void Clean()
         {
-            var childrenToRemove = from child in Children
-                                   where child.IsRemoved
-                                   select child;
-            foreach (var child in childrenToRemove)
-                Children.Remove(child);
+            foreach (var child in Children)
+                if (child.Physics != null)
+                    child.Physics.Clean();
+            Children.RemoveAll(c => c.IsRemoved);
         }
 
         public Vector GlobalPosition()
         {
-            if (m_parent == null)
+            if (Parent == null)
             {
-                return m_frame.Center;
+                return Frame.Center;
             }
             else
             {
-                return m_frame.Center + Parent.GlobalPosition();
+                return Frame.Center + Parent.GlobalPosition();
             }
         }
     }

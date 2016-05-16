@@ -5,16 +5,11 @@ namespace WindowsFormsPlatformer.GameObjects
 {
     class World : GameObject
     {
-        private Camera m_camera;
-
-        public Camera Camera
-        {
-            get { return m_camera; }
-        }
+        public Camera Camera { get; internal set; }
 
         public World(GameContext context, Rect frame) : base(context, frame)
         {
-            m_camera = new Camera(context, frame);
+            Camera = new Camera(context, frame);
         }
 
         public void Render(Graphics renderer)
